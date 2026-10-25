@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#07070f" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f2f3f9" media="(prefers-color-scheme: light)" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <script src="./assets/thema.js?v=20261024"></script>
+    <link rel="stylesheet" href="./assets/style.css?v=20261024w" />
+    <link rel="stylesheet" href="./spiel.css?v=20261024" />
+    <title>Schach · Browser-Arcade</title>
+    <meta
+      name="description"
+      content="Schach auf einem Holzbrett – gegen den Computer, zu zweit am Gerät oder online mit Code."
+    />
+  </head>
+  <body style="--ak: var(--cyan)">
+    <div class="raster" aria-hidden="true"></div>
+    <a class="skip-link" href="#main">Zum Inhalt springen</a>
+    <header class="kopf">
+      <nav class="container nav" aria-label="Hauptnavigation">
+        <a class="marke" href="./"><span class="logo">▶</span>GAMES</a>
+        <div class="nav-links">
+          <a href="./impressum.html">Impressum</a><a href="./datenschutz.html">Datenschutz</a>
+        </div>
+      </nav>
+    </header>
+    <main id="main" class="container">
+      <div class="spiel-kopf">
+        <div>
+          <h1>SCHACH</h1>
+          <p class="unterzeile">Setz den gegnerischen König matt – auf einem echten Holzbrett.</p>
+        </div>
+      </div>
+      <div class="vr-modi" id="modi" role="group" aria-label="Spielart">
+        <button type="button" class="knopf" data-modus="computer" aria-pressed="true">
+          Gegen Computer
+        </button>
+        <button type="button" class="knopf" data-modus="zweit" aria-pressed="false">
+          Zu zweit
+        </button>
+        <button type="button" class="knopf" data-modus="online" aria-pressed="false">Online</button>
+      </div>
+      <div class="vr-stufen" id="stufen" role="group" aria-label="Stärke des Computers">
+        <button type="button" class="knopf" data-stufe="leicht" aria-pressed="false">Leicht</button>
+        <button type="button" class="knopf" data-stufe="mittel" aria-pressed="true">Mittel</button>
+        <button type="button" class="knopf" data-stufe="schwer" aria-pressed="false">Schwer</button>
+      </div>
+      <div class="vr-online" id="online" hidden>
+        <button type="button" class="knopf primaer" id="eroeffnen">Spiel eröffnen</button>
+        <form id="beitritt" novalidate>
+          <label
+            >Code vom Gegenüber<input
+              id="code"
+              maxlength="4"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              placeholder="AB3D"
+          /></label>
+          <button type="submit" class="knopf">Beitreten</button>
+        </form>
+        <p class="vr-klein">
+          Online verbinden sich die Browser direkt. Dabei sieht dein Mitspieler technisch deine
+          IP-Adresse. Mehr in der
+          <a href="./datenschutz.html#mehrspieler">Datenschutzerklärung</a>.
+        </p>
+      </div>
+      <div class="vr-kopf" id="raumkopf" hidden>
+        <span>Code: <span class="vr-code" id="raumcode">····</span></span>
+        <button type="button" class="knopf" id="teilen">Code teilen</button>
+        <button type="button" class="knopf" id="aufstehen">Verlassen</button>
+      </div>
+      <div class="hud">
+        <div class="hud-feld">
+          <div class="label" id="hud-l1">Punkte</div>
+          <div class="wert" id="hud-1">0</div>
+        </div>
+        <div class="hud-feld">
+          <div class="label" id="hud-l2">Siege</div>
+          <div class="wert" id="hud-2">0</div>
+        </div>
+      </div>
+      <div class="buehne">
+        <p class="vr-status" id="status" role="status" aria-live="polite"></p>
+        <div class="sch-geraet">
+          <div class="sch-spieler" id="oben"></div>
+          <div class="sch-rahmen">
+            <div
+              class="sch-brett"
+              id="brett"
+              tabindex="0"
+              role="grid"
+              aria-label="Schachbrett. Pfeiltasten bewegen, Enter wählt und zieht."
+            ></div>
+            <div class="sch-umwandlung" id="umwandlung" hidden></div>
+          </div>
+          <div class="sch-spieler" id="unten"></div>
+        </div>
+        <p class="vr-punkte" id="punkte"></p>
+        <div class="vr-ende sch-knoepfe">
+          <button type="button" class="knopf" id="zurueck">Zug zurück</button>
+          <button type="button" class="knopf" id="drehen" hidden>Brett drehen</button>
+          <button type="button" class="knopf" id="aufgeben">Aufgeben</button>
+        </div>
+        <div class="vr-ende" id="ende" hidden>
+          <button type="button" class="knopf primaer" id="nochmal">Neue Partie</button>
+        </div>
+        <ol class="sch-zuege" id="zuege" aria-label="Zugliste"></ol>
+      </div>
+      <p class="steuerung">
+        Tippe eine Figur an, dann das Zielfeld. Punkte zeigen erlaubte Züge, Ringe Schlagzüge.
+        Tastatur: <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> bewegen,
+        <kbd>Enter</kbd> wählt und zieht, <kbd>Esc</kbd> hebt die Wahl auf.
+      </p>
+      <section style="max-width: 420px; margin-top: 36px">
+        <h2 style="font-family: var(--pixel); font-weight: 400; font-size: 0.85rem">
+          Topliste · Punkte gegen den Computer
+        </h2>
+        <div id="topliste"></div>
+        <button class="knopf" id="reset" style="margin-top: 10px">Spielstand zurücksetzen</button>
+      </section>
+      <section class="lernbox">
+        <details open>
+          <summary>Anleitung &amp; Regeln</summary>
+          <p>
+            <strong>Ziel:</strong> Setz den gegnerischen König schachmatt – er steht im Schach und
+            kann nicht mehr entkommen.
+          </p>
+          <ul>
+            <li>
+              <strong>König</strong> 1 Feld in jede Richtung · <strong>Dame</strong> beliebig weit
+              gerade und schräg · <strong>Turm</strong> gerade · <strong>Läufer</strong> schräg ·
+              <strong>Springer</strong> im „L“ (2 + 1), er darf springen · <strong>Bauer</strong> 1
+              Feld vor (vom Start auch 2), schlägt schräg.
+            </li>
+            <li>
+              <strong>Rochade:</strong> König 2 Felder Richtung Turm, der Turm springt über ihn.
+              Geht nur, wenn beide noch nicht gezogen haben, nichts dazwischen steht und der König
+              nicht durch Schach zieht.
+            </li>
+            <li>
+              <strong>En passant:</strong> Zieht ein Bauer 2 Felder neben deinen Bauern, darfst du
+              ihn im nächsten Zug so schlagen, als wäre er nur 1 Feld gezogen.
+            </li>
+            <li>
+              <strong>Umwandlung:</strong> Ein Bauer auf der letzten Reihe wird Dame, Turm, Läufer
+              oder Springer.
+            </li>
+            <li>
+              <strong>Remis</strong> bei Patt (kein Zug, aber kein Schach), dreifacher Wiederholung,
+              50 Zügen ohne Schlag oder Bauernzug und wenn keiner mehr matt setzen kann.
+            </li>
+            <li>
+              <strong>Gegen Computer:</strong> drei Stärken, du wechselst jede Partie die Farbe.
+              Punkte für die Topliste: Sieg Leicht 1, Mittel 3, Schwer 10 – Remis 0, 1, 4. Nimmst du
+              einen Zug zurück oder wechselst die Stärke, zählt die Partie nicht.
+            </li>
+            <li>
+              <strong>Zu zweit:</strong> abwechselnd am selben Gerät.
+              <strong>Online:</strong> Eröffne ein Spiel und schick den Code (oder den Link). Nach
+              jeder Partie werden die Farben getauscht.
+            </li>
+            <li>
+              Die Partie wird gespeichert – du kannst die Seite schließen und später weiterspielen
+              (außer online).
+            </li>
+          </ul>
+        </details>
+      </section>
+      <section class="lernbox">
+        <details>
+          <summary>Wie funktioniert der Code?</summary>
+          <p>
+            <strong>Das Brett hat 128 Plätze („0x88“).</strong> Nur die Hälfte sind echte Felder.
+            Der Trick: Läuft eine Figur über den Rand, ist im Feldindex das Bit 0x88 gesetzt – ein
+            einziger Vergleich statt vieler Randprüfungen.
+          </p>
+          <p>
+            <strong>Züge:</strong> Für jede Figur werden die Richtungen abgelaufen. Danach wird
+            jeder Zug probeweise ausgeführt; steht der eigene König dann im Schach, fällt der Zug
+            weg. Geprüft ist das mit „Perft“: Von der Startstellung aus gibt es nach 4 Halbzügen
+            genau 197.281 Stellungen – die Zahl stimmt.
+          </p>
+          <p>
+            <strong>Der Computer</strong> sucht mit Alpha-Beta und wird mit jeder Runde tiefer
+            (iterative Vertiefung), bis seine Bedenkzeit um ist. Am Ende rechnet er alle
+            Schlagabfolgen zu Ende (Ruhesuche), damit er keine Figur übersieht. Bewertet wird
+            Material plus eine Tabelle je Figur, welche Felder gut sind. „Leicht“ wählt öfter
+            einfach einen Zug, „Mittel“ unter fast gleich guten zufällig. Das Rechnen läuft in einem
+            <code>Web Worker</code>.
+          </p>
+          <p>
+            <strong>Online</strong> ist ein Browser der Gastgeber: Er prüft jeden Zug und schickt
+            Startstellung plus Zugliste an den Gast. Der Gast schickt nur „von – nach“.
+          </p>
+        </details>
+      </section>
+    </main>
+    <footer class="fuss">
+      <div class="container fuss-in">
+        <span>Browser-Arcade · Open Source</span>
+        <nav aria-label="Rechtliches">
+          <a href="./impressum.html">Impressum</a><a href="./datenschutz.html">Datenschutz</a>
+        </nav>
+      </div>
+    </footer>
+    <script type="module" src="./game.js?v=20261024"></script>
+  </body>
+</html>
